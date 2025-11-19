@@ -1,13 +1,13 @@
 export class Toolbox {
 
-    //gets a random number 0 -> array.length, given an array.
+
     getRandomIndex(array) {
         return Math.floor(
             Math.random() * array.length
         );
     }
 
-    //gets a random item from an array
+
     getRandomItem(array) {
         let randomIndex = this.getRandomIndex(array);
         return array[randomIndex];
@@ -20,7 +20,7 @@ export class Toolbox {
 
         for(let i = 0; i < howManyTimesToPush; i++) {
             let randomIndex = this.getRandomIndex(array);
-            let removed = array.splice(randomIndex , 1 ) //start position, lenth.
+            let removed = array.splice(randomIndex , 1 ) 
             
             shuffled.push(removed[0]);
         }
@@ -37,12 +37,18 @@ export class Toolbox {
         ];
 
         for(let i = 0; i < 6; i++) {
-            //i'll be in here six times.
             color += this.getRandomItem(chars);
         }
 
-        //like #1afe24
         return color;
     }
 
+    isWithinRect(clickX, clickY, x, y, width, height) {
+    return (
+        clickX >= x &&
+        clickX <= x + width &&
+        clickY >= y &&
+        clickY <= y + height
+    );
+    }
 }

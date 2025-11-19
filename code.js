@@ -2,53 +2,101 @@ import { Toolbox } from "./toolbox.js";
 import { Card } from "./card.js";
 
 let canvas = document.getElementById("myCanvas");
-let pencil = canvas.getContext("2d"); // This gives you the drawing context, like a pencil
+let pencil = canvas.getContext("2d");
 let toolbox = new Toolbox();
+let winScreen = document.getElementById("win_screen")
+
+let cards = [];
+let flippedCards = [];
+let lockBoard = false;
+let gameWon = false;
 
 function gameInitialize() {
     let numberOfColors = 8;
     let colors = [];
 
-    for (let i = 0; i < numberOfColors; i++){
-        let colorAdd = toolbox.getRandomColor();
-        colors.push(colorAdd)
+    for (let i = 0; i < numberOfColors; i++) {
+        colors.push(toolbox.getRandomColor());
     }
-    console.log(colors)
 
-    let cardSpot = [];
+    // Duplicate and shuffle
+    let cardColors = [];
+    colors.forEach(c => {
+        cardColors.push(c);
+        cardColors.push(c);
+    });
+    cardColors = toolbox.shuffleArray(cardColors);
 
-    for (let i = 0; i < colors.length; i++) {
-        cardSpot.push(colors[i])
-        cardSpot.push(colors[i])
-    };
-
-    cardSpot = toolbox.shuffleArray(cardSpot)
-    console.log(cardSpot)
-    
+    // Create card objects
     let cardX = 50;
     let cardY = 50;
     let cardsPerRow = 8;
     let cardSpacing = 150;
 
-    for (let i = 0; i < cardSpot.length; i++) {
-        // Draw the card
-        let cardDraw = new Card(canvas, pencil, cardX, cardY, cardSpot[i]);
-        cardDraw.draw();
+    for (let i = 0; i < cardColors.length; i++) {
+        let card = new Card(canvas, pencil, cardX, cardY, cardColors[i], flipCard);
+        cards.push(card);
 
-        
         cardX += cardSpacing;
-
-        // Check if we’ve reached the end of a row
         if ((i + 1) % cardsPerRow === 0) {
-            cardX = 50; // reset to first X
-            cardY += 200; // move down next row
+            cardX = 50;
+            cardY += 200;
         }
-}
-    
+    }
 }
 
-gameInitialize()
+function flipCard(card) {
+    if (lockBoard || flippedCards.includes(card)) return;
 
+    card.isFaceUp = true;
+    flippedCards.push(card);
+
+    if (flippedCards.length === 2) {
+        checkMatch();
+    }
+}
+
+function checkMatch() {
+    lockBoard = true;
+
+    let [card1, card2] = flippedCards;
+
+    if (card1.color === card2.color) {
+        flippedCards = [];
+        lockBoard = false;
+        checkWin();
+    } else {
+        setTimeout(() => {
+            card1.isFaceUp = false;
+            card2.isFaceUp = false;
+            flippedCards = [];
+            lockBoard = false;
+        }, 1000);
+    }
+}
+
+function checkWin() {
+    let allFaceUp = cards.every(function(card) {
+        return card.isFaceUp;
+    });
+
+    if (allFaceUp) {
+        gameWon = true;
+    }
+}
 function gameLoop() {
+    pencil.clearRect(0, 0, canvas.width, canvas.height);
+    cards.forEach(card => card.draw());
 
-};
+    if (gameWon == true){
+        pencil.drawImage(
+            winScreen,
+            canvas.width / 2 - winScreen.naturalWidth / 2,
+            canvas.height / 2 - winScreen.naturalHeight / 2
+        );
+    }
+}
+
+// Initialize game
+gameInitialize();
+setInterval(gameLoop, 1000 / 60);
